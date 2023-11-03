@@ -6,4 +6,4 @@ pyautogen
 python-dotenv
 replicate
 Requests
-sqlite3==3.35.0
+sqlite3
