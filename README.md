@@ -1,4 +1,4 @@
-# Calm Collective Content Agency! 🚀🤖
+# Calm Collective Media Agency 🚀🤖
 
 It's like having a media team right at your fingertips, powered by Autogen.
 
