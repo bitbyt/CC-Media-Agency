@@ -1,5 +1,5 @@
 beautifulsoup4==4.12.2
-chainlit==0.7.400
+chainlit
 chromadb==0.4.14
 langchain==0.0.329
 pyautogen==0.1.13
