@@ -3,6 +3,7 @@ chainlit
 chromadb==0.3.29
 langchain
 pyautogen
+pypdf
 python-dotenv
 replicate
 Requests
