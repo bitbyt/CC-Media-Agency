@@ -67,14 +67,14 @@ gpt4_config = {
 
 # chroma_client = chromadb.HttpClient(host=CHROMA_SERVER_HOST, port=CHROMA_SERVER_HTTP_PORT)
 
-# @cl.oauth_callback
-# def oauth_callback(
-#   provider_id: str,
-#   token: str,
-#   raw_user_data: Dict[str, str],
-#   default_app_user: cl.AppUser,
-# ) -> Optional[cl.AppUser]:
-#   return default_app_user
+@cl.oauth_callback
+def oauth_callback(
+  provider_id: str,
+  token: str,
+  raw_user_data: Dict[str, str],
+  default_app_user: cl.AppUser,
+) -> Optional[cl.AppUser]:
+  return default_app_user
 
 @cl.on_chat_start
 async def on_chat_start():
