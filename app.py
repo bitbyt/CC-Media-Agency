@@ -9,6 +9,7 @@ from autogen.agentchat.contrib.retrieve_user_proxy_agent import RetrieveUserProx
 
 import chromadb
 from chromadb.utils import embedding_functions
+from chromadb.config import Settings
 
 import chainlit as cl
 
@@ -22,6 +23,8 @@ load_dotenv()
 PRO_GPT_MODEL = os.getenv("PRO_GPT_MODEL")
 BASE_GPT_MODEL = os.getenv("BASE_GPT_MODEL")
 SUB_GPT_MODEL = os.getenv("SUB_GPT_MODEL")
+CHROMA_SERVER_HOST = os.getenv("CHROMA_SERVER_HOST")
+CHROMA_SERVER_HTTP_PORT = os.getenv("CHROMA_SERVER_HTTP_PORT")
 
 USER_PROXY_NAME = "Query Agent"
 DOMAIN_EXPERT = "Domain Expert"
@@ -62,14 +65,16 @@ openai_ef = embedding_functions.OpenAIEmbeddingFunction(
                 model_name="text-embedding-ada-002"
             )
 
-@cl.oauth_callback
-def oauth_callback(
-  provider_id: str,
-  token: str,
-  raw_user_data: Dict[str, str],
-  default_app_user: cl.AppUser,
-) -> Optional[cl.AppUser]:
-  return default_app_user
+chroma_client = chromadb.HttpClient(host=CHROMA_SERVER_HOST, port=CHROMA_SERVER_HTTP_PORT)
+
+# @cl.oauth_callback
+# def oauth_callback(
+#   provider_id: str,
+#   token: str,
+#   raw_user_data: Dict[str, str],
+#   default_app_user: cl.AppUser,
+# ) -> Optional[cl.AppUser]:
+#   return default_app_user
 
 @cl.on_chat_start
 async def on_chat_start():
