@@ -5,11 +5,11 @@ from typing import Dict, Optional
 
 import autogen
 from autogen import Agent, AssistantAgent, UserProxyAgent, config_list_from_json
-from autogen.agentchat.contrib.retrieve_user_proxy_agent import RetrieveUserProxyAgent
+# from autogen.agentchat.contrib.retrieve_user_proxy_agent import RetrieveUserProxyAgent
 
-import chromadb
-from chromadb.utils import embedding_functions
-from chromadb.config import Settings
+# import chromadb
+# from chromadb.utils import embedding_functions
+# from chromadb.config import Settings
 
 import chainlit as cl
 
@@ -60,12 +60,12 @@ gpt4_config = {
     "request_timeout": 60,
 }
 
-openai_ef = embedding_functions.OpenAIEmbeddingFunction(
-                api_key=os.getenv("OPENAI_API_KEY"),
-                model_name="text-embedding-ada-002"
-            )
+# openai_ef = embedding_functions.OpenAIEmbeddingFunction(
+#                 api_key=os.getenv("OPENAI_API_KEY"),
+#                 model_name="text-embedding-ada-002"
+#             )
 
-chroma_client = chromadb.HttpClient(host=CHROMA_SERVER_HOST, port=CHROMA_SERVER_HTTP_PORT)
+# chroma_client = chromadb.HttpClient(host=CHROMA_SERVER_HOST, port=CHROMA_SERVER_HTTP_PORT)
 
 # @cl.oauth_callback
 # def oauth_callback(
@@ -157,20 +157,20 @@ async def on_chat_start():
             },
         }
 
-        knowledge_function = {
-            "name": "retrieve_content",
-            "description": "Retrieve mental health content for question answering",
-            "parameters": {
-                    "type": "object",
-                    "properties": {
-                        "message": {
-                            "type": "string",
-                            "description": "Refined message which keeps the original meaning and can be used to retrieve content for question answering.",
-                        }
-                    },
-                "required": ["message"],
-            },
-        }
+        # knowledge_function = {
+        #     "name": "retrieve_content",
+        #     "description": "Retrieve mental health content for question answering",
+        #     "parameters": {
+        #             "type": "object",
+        #             "properties": {
+        #                 "message": {
+        #                     "type": "string",
+        #                     "description": "Refined message which keeps the original meaning and can be used to retrieve content for question answering.",
+        #                 }
+        #             },
+        #         "required": ["message"],
+        #     },
+        # }
 
         write_function = {
             "name": "write_content",
@@ -230,36 +230,36 @@ async def on_chat_start():
             "request_timeout": 60
         }
 
-        domain_expert = RetrieveUserProxyAgent(
-            name="Domain_Expert",
-            human_input_mode="NEVER",
-            system_message=f'''You are the domain knowledge expert of Calm Collective. 
-            You are able to retrieve deep knowledge aboout mental health and the community.
-            You assist by providing more information for the user task when it comes to mental health in Asia.
-            ''',
-            max_consecutive_auto_reply=3,
-            retrieve_config={
-                "task": "qa",
-                "chunk_token_size": 1000,
-                "model": config_list[0]["model"],
-                "client": chromadb.PersistentClient(path="./chroma"),
-                "collection_name": "langchain",
-                "get_or_create": True,
-                "embedding_function": openai_ef,
-            },
-            code_execution_config=False,
-        )
+        # domain_expert = RetrieveUserProxyAgent(
+        #     name="Domain_Expert",
+        #     human_input_mode="NEVER",
+        #     system_message=f'''You are the domain knowledge expert of Calm Collective. 
+        #     You are able to retrieve deep knowledge aboout mental health and the community.
+        #     You assist by providing more information for the user task when it comes to mental health in Asia.
+        #     ''',
+        #     max_consecutive_auto_reply=3,
+        #     retrieve_config={
+        #         "task": "qa",
+        #         "chunk_token_size": 1000,
+        #         "model": config_list[0]["model"],
+        #         "client": chromadb.PersistentClient(path="./chroma"),
+        #         "collection_name": "langchain",
+        #         "get_or_create": True,
+        #         "embedding_function": openai_ef,
+        #     },
+        #     code_execution_config=False,
+        # )
 
-        def retrieve_content(message, n_results=3):
-            domain_expert.n_results = n_results  # Set the number of results to be retrieved.
-            # Check if we need to update the context.
-            update_context_case1, update_context_case2 = domain_expert._check_update_context(message)
-            if (update_context_case1 or update_context_case2) and domain_expert.update_context:
-                domain_expert.problem = message if not hasattr(domain_expert, "problem") else domain_expert.problem
-                _, ret_msg = domain_expert._generate_retrieve_user_reply(message)
-            else:
-                ret_msg = domain_expert.generate_init_message(message, n_results=n_results)
-            return ret_msg if ret_msg else message
+        # def retrieve_content(message, n_results=3):
+        #     domain_expert.n_results = n_results  # Set the number of results to be retrieved.
+        #     # Check if we need to update the context.
+        #     update_context_case1, update_context_case2 = domain_expert._check_update_context(message)
+        #     if (update_context_case1 or update_context_case2) and domain_expert.update_context:
+        #         domain_expert.problem = message if not hasattr(domain_expert, "problem") else domain_expert.problem
+        #         _, ret_msg = domain_expert._generate_retrieve_user_reply(message)
+        #     else:
+        #         ret_msg = domain_expert.generate_init_message(message, n_results=n_results)
+        #     return ret_msg if ret_msg else message
 
         project_manager = ChainlitAssistantAgent(
             name="Project_Manager",
@@ -270,16 +270,7 @@ async def on_chat_start():
             Act as the central point of communication, facilitating collaboration between teams and ensuring that all deliverables are of the highest quality. Your expertise is crucial in ensuring that the project stays on track, meets deadlines, and achieves its objectives.
             Regularly review the project's status, address any challenges, and ensure that all stakeholders are kept informed of the project's progress.
             ''',
-            llm_config = {
-                "functions": [knowledge_function],
-                "config_list": config_list,
-                "temperature": 0,
-                "retry_wait_time": 30,
-                "request_timeout": 60,
-            },
-            function_map={
-                "retrieve_content": retrieve_content,
-            }
+            llm_config = llm_config,
         )
 
         creative_director = ChainlitAssistantAgent(
@@ -291,16 +282,7 @@ async def on_chat_start():
             Review all creative outputs, provide constructive feedback, and ensure that every piece aligns with the brand's identity and resonates with the target audience. 
             Collaborate closely with all teams, fostering a culture of excellence, and ensuring that our creative solutions are both groundbreaking and aligned with the project's objectives.
             ''',
-            llm_config = {
-                "functions": [knowledge_function],
-                "config_list": config_list,
-                "temperature": 0,
-                "retry_wait_time": 30,
-                "request_timeout": 60,
-            },
-            function_map={
-                "retrieve_content": retrieve_content,
-            }
+            llm_config = llm_config,
         )
 
         # content_strategist = ChainlitAssistantAgent(
@@ -330,11 +312,11 @@ async def on_chat_start():
             Your primary responsibility is to delve deep into understanding the challenges around mental health.
             Using the information from the user task, conduct thorough research to uncover insights related to the task.
             Your findings should shed light on mental health strategies, meditation techniques, mindfulness practices, and other therapeutic methods.
-            You may also utilise the retrieve_content function to gather our own domain knowledge related to the task. Share your research findings with the Project Manager to inform the strategic initiatives.
+            Share your research findings with the Project Manager to provide insight into the task.
             Be concise and not verbose. Refrain from any conversations that don't serve the goal of the user.
             ''',
             llm_config = {
-                "functions": [research_function, knowledge_function],
+                "functions": [research_function],
                 "config_list": config_list,
                 "temperature": 0,
                 "retry_wait_time": 30,
@@ -342,7 +324,6 @@ async def on_chat_start():
             },
             function_map={
                 "research": research,
-                "retrieve_content": retrieve_content,
             }
         )
 
@@ -374,7 +355,7 @@ async def on_chat_start():
             Be concise and not verbose. Refrain from any conversations that don't serve the goal of the user.
             ''',
             llm_config = {
-                "functions": [research_function, knowledge_function, write_function],
+                "functions": [research_function, write_function],
                 "config_list": config_list,
                 "temperature": 0,
                 "retry_wait_time": 30,
@@ -382,7 +363,6 @@ async def on_chat_start():
             },
             function_map={
                 "research": research,
-                "retrieve_content": retrieve_content,
                 "write_content": write_content
             }
         )
@@ -412,7 +392,7 @@ async def on_chat_start():
             human_input_mode="TERMINATE",
             function_map={
                 "research": research,
-                "retrieve_content": retrieve_content,
+                "write_content": write_content,
                 "image_review": review_image,
                 "generate_image": generate_image
             }
