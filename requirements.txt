@@ -1,6 +1,7 @@
 beautifulsoup4==4.12.2
 chainlit
 chromadb==0.3.29
+IPython
 langchain
 pyautogen
 pypdf
