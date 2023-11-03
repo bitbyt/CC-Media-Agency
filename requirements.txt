@@ -2,7 +2,7 @@ beautifulsoup4==4.12.2
 chainlit
 chromadb==0.4.14
 langchain
-pyautogen==0.1.13
-python-dotenv==1.0.0
-replicate==0.15.5
-Requests==2.31.0
+pyautogen
+python-dotenv
+replicate
+Requests
