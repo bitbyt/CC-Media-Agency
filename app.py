@@ -25,6 +25,7 @@ BASE_GPT_MODEL = "gpt-3.5-turbo-16k"
 SUB_GPT_MODEL = "gpt-3.5-turbo"
 CHROMA_SERVER_HOST = os.getenv("CHROMA_SERVER_HOST")
 CHROMA_SERVER_HTTP_PORT = os.getenv("CHROMA_SERVER_HTTP_PORT")
+GLOBAL_TIMEOUT = os.getenv("GLOBAL_TIMEOUT")
 
 USER_PROXY_NAME = "Query Agent"
 DOMAIN_EXPERT = "Domain Expert"
@@ -50,14 +51,14 @@ llm_config = {
     "retry_wait_time": 30,
     "config_list": config_list,
     "temperature": 0,
-    "request_timeout": 60,
+    "request_timeout": GLOBAL_TIMEOUT,
 }
 
 gpt4_config = {
     "retry_wait_time": 30,
     "config_list": config_list_from_json("OAI_CONFIG_LIST", filter_dict={"model": {"gpt-4", "gpt-3.5-turbo-16k"}}),
     "temperature": 0,
-    "request_timeout": 60,
+    "request_timeout": GLOBAL_TIMEOUT,
 }
 
 # openai_ef = embedding_functions.OpenAIEmbeddingFunction(
@@ -178,7 +179,7 @@ async def on_chat_start():
                 "config_list": config_list,
                 "temperature": 0,
                 "retry_wait_time": 30,
-                "request_timeout": 60,
+                "request_timeout": GLOBAL_TIMEOUT,
             }
 
             research_assistant = AssistantAgent(
@@ -305,7 +306,7 @@ async def on_chat_start():
                 },
             ],
             "config_list": config_list,
-            "request_timeout": 60
+            "request_timeout": GLOBAL_TIMEOUT
         }
 
         # domain_expert = RetrieveUserProxyAgent(
@@ -398,7 +399,7 @@ async def on_chat_start():
                 "config_list": config_list,
                 "temperature": 0,
                 "retry_wait_time": 30,
-                "request_timeout": 60,
+                "request_timeout": GLOBAL_TIMEOUT,
             },
             function_map={
                 "research": research,
@@ -418,7 +419,7 @@ async def on_chat_start():
                 "config_list": config_list,
                 "temperature": 0,
                 "retry_wait_time": 30,
-                "request_timeout": 60,
+                "request_timeout": GLOBAL_TIMEOUT,
             },
             function_map={
                 "write_content": write_content
@@ -437,7 +438,7 @@ async def on_chat_start():
                 "config_list": config_list,
                 "temperature": 0,
                 "retry_wait_time": 30,
-                "request_timeout": 60,
+                "request_timeout": GLOBAL_TIMEOUT,
             },
             function_map={
                 "research": research,
