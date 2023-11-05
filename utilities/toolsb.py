@@ -11,23 +11,26 @@ from datetime import datetime
 
 from langchain.prompts import PromptTemplate
 from langchain.agents import initialize_agent, Tool, AgentType
-from langchain.chains import LLMMathChain
+from langchain.chains import LLMMathChain, RetrievalQAWithSourcesChain
 from langchain.chains.summarize import load_summarize_chain
-from langchain.chat_models import ChatOpenAI
+from langchain.vectorstores import Chroma
+from langchain.embeddings import OpenAIEmbeddings
+from langchain.chat_models.openai import ChatOpenAI
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.schema import SystemMessage
+from langchain.retrievers.web_research import WebResearchRetriever
+from langchain.utilities import GoogleSearchAPIWrapper
 
 import replicate
-import chainlit as cl
 
 load_dotenv()
 browserless_api_key = os.getenv("BROWSERLESS_API_KEY")
 serper_api_key = os.getenv("SERP_API_KEY")
 
 # Load default config
-PRO_GPT_MODEL = "gpt-4"
-BASE_GPT_MODEL = "gpt-3.5-turbo-16k"
-SUB_GPT_MODEL = "gpt-3.5-turbo"
+PRO_GPT_MODEL = os.getenv("PRO_GPT_MODEL")
+BASE_GPT_MODEL = os.getenv("BASE_GPT_MODEL")
+SUB_GPT_MODEL = os.getenv("SUB_GPT_MODEL")
 
 # Search Function
 def search(query):
@@ -115,16 +118,16 @@ def summary(content):
 
     return output
 
-def get_image_name():
-    image_count = cl.user_session.get("image_count")
-    if image_count is None:
-        image_count = 0
-    else:
-        image_count += 1
+# def get_image_name():
+#     image_count = cl.user_session.get("image_count")
+#     if image_count is None:
+#         image_count = 0
+#     else:
+#         image_count += 1
 
-    cl.user_session.set("image_count", image_count)
+#     cl.user_session.set("image_count", image_count)
 
-    return f"image-{image_count}"
+#     return f"image-{image_count}"
 
 # Image generator
 def generate_image(prompt):
@@ -154,21 +157,6 @@ def generate_image(prompt):
             if not os.path.exists("./image"):
                 os.mkdir("./image")
             filename = f"./image/{name}.png"
-
-            cl.user_session.set(f"Generated image for '{prompt}': {image_url}", response.content)
-            cl.user_session.set("generated_image", name)
-
-            elements = [
-                cl.Image(
-                    content=response.content,
-                    name=name,
-                    display="inline",
-                )
-            ]
-            cl.run_sync(
-                cl.Message(content=f"{name}.png", elements=elements).send()
-            )
-            
 
             with open(filename, "wb") as file:
                 file.write(response.content)
@@ -237,4 +225,20 @@ def research(query):
     )
 
     results = agent.run(query)
+    return results
+
+# Researcher V2
+def research_v2(query):
+    vectorstore = Chroma(
+        embedding_function=OpenAIEmbeddings(), persist_directory="./chroma"
+    )
+
+    search = GoogleSearchAPIWrapper()
+
+    web_research_retriever = WebResearchRetriever.from_llm(
+        vectorstore=vectorstore,
+        llm=llm,
+        search=search,
+    )
+
     return results
