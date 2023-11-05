@@ -31,7 +31,7 @@ The agents involved in the collaboration include:
 
 1. Ensure required libraries are installed:
 ```
-pip install pyautogen
+pip install requirements.txt
 ```
 
 2. Set up the OpenAI configuration list by either providing an environment variable `OAI_CONFIG_LIST` or specifying a file path.
@@ -55,7 +55,7 @@ CHAINLIT_API_KEY="XXX"
 
 4. Launch in CLI:
 ```
-python3 main.py
+chainlit app.py
 ```
 
 ## 📈 Roadmap
