@@ -22,6 +22,7 @@ BASE_GPT_MODEL = os.getenv("BASE_GPT_MODEL")
 SUB_GPT_MODEL = os.getenv("SUB_GPT_MODEL")
 CHROMA_SERVER_HOST = os.getenv("CHROMA_SERVER_HOST")
 CHROMA_SERVER_HTTP_PORT = os.getenv("CHROMA_SERVER_HTTP_PORT")
+GLOBAL_TIMEOUT = os.getenv("GLOBAL_TIMEOUT")
 
 USER_PROXY_NAME = "Query Agent"
 DOMAIN_EXPERT = "Domain Expert"
@@ -47,14 +48,14 @@ llm_config = {
     "retry_wait_time": 30,
     "config_list": config_list,
     "temperature": 0,
-    "request_timeout": 60,
+    "request_timeout": GLOBAL_TIMEOUT,
 }
 
 gpt4_config = {
     "retry_wait_time": 30,
     "config_list": config_list_from_json("OAI_CONFIG_LIST", filter_dict={"model": {"gpt-4", "gpt-3.5-turbo-16k"}}),
     "temperature": 0,
-    "request_timeout": 60,
+    "request_timeout": GLOBAL_TIMEOUT,
 }
 
 # openai_ef = embedding_functions.OpenAIEmbeddingFunction(
@@ -102,7 +103,7 @@ def create_artwork(brief):
             },
         ],
         "config_list": config_list,
-        "request_timeout": 60
+        "request_timeout": GLOBAL_TIMEOUT
     }
     
     artist = AssistantAgent(
@@ -431,7 +432,7 @@ def agency(TASK):
             "config_list": config_list,
             "temperature": 0,
             "retry_wait_time": 30,
-            "request_timeout": 60,
+            "request_timeout": GLOBAL_TIMEOUT,
         },
         function_map={
             "research": research,
@@ -451,7 +452,7 @@ def agency(TASK):
             "config_list": config_list,
             "temperature": 0,
             "retry_wait_time": 30,
-            "request_timeout": 60,
+            "request_timeout": GLOBAL_TIMEOUT,
         },
         function_map={
             "write_content": write_content
@@ -470,7 +471,7 @@ def agency(TASK):
             "config_list": config_list,
             "temperature": 0,
             "retry_wait_time": 30,
-            "request_timeout": 60,
+            "request_timeout": GLOBAL_TIMEOUT,
         },
         function_map={
             "research": research,
@@ -494,6 +495,6 @@ def agency(TASK):
 
     user_proxy.initiate_chat( manager, message=TASK, )
 
-TASK = "Using LLaVA to iterate on image prompt for image generation"
-
-research(TASK)
+# TASK = "Using LLaVA to iterate on image prompt for image generation"
+user_task = input("Please enter the your goal, brief, or problem statement: ")
+research(user_task)
