@@ -64,7 +64,7 @@ chainlit app.py
 2. Reduce unnecessary back and forth between agents, tools overlap
 4. Implement other agents, see commented out agents
 6. Fine tune agents for each domain specific task
-7. Implement [Memgpt] (https://memgpt.ai) to increase context scope
+7. Implement [Memgpt](https://memgpt.ai) to increase context scope
 
 ## 📝 License 
 
