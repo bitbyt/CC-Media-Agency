@@ -60,11 +60,11 @@ chainlit app.py
 
 ## 📈 Roadmap
 
-1. Refine workflow and data pass through to agents
-2. Reduce unnecessaery back and forth
-3. Save files to local folder
+1. Refine agents workflow
+2. Reduce unnecessary back and forth between agents, tools overlap
 4. Implement other agents, see commented out agents
-6. Create and train fine-tuned agents for each domain specific task
+6. Fine tune agents for each domain specific task
+7. Implement [Memgpt] (https://memgpt.ai) to increase context scope
 
 ## 📝 License 
 
