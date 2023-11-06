@@ -34,8 +34,8 @@ PROJECT_MANAGER = "Project Manager"
 CONTENT_STRATEGIST = "Content Strategist"
 CONTENT_RESEARCHER = "Content Researcher"
 CONTENT_WRITER = "Content Writer"
-WRITING_ASSISTANT = "Writing Assistant"
-ARTIST = "Artist"
+COPYWRITER = "Copywriter"
+GRAPHIC_DESIGNER = "graphic_designer"
 ART_DIRECTOR = "Art Director"
 
 WELCOME_MESSAGE = f"""Calm Collective Media Team 🧑🏻‍💻
@@ -54,7 +54,7 @@ llm_config = {
 
 gpt4_config = {
     "retry_wait_time": 30,
-    "config_list": config_list_from_json("OAI_CONFIG_LIST", filter_dict={"model": {"gpt-4", "gpt-3.5-turbo-16k"}}),
+    "config_list": config_list_from_json("OAI_CONFIG_LIST", filter_dict={"model": {"gpt-4-1106-preview", "gpt-3.5-turbo-16k"}}),
     "temperature": 0,
     "request_timeout": GLOBAL_TIMEOUT,
 }
@@ -200,26 +200,27 @@ async def on_chat_start():
         project_manager = ChainlitAssistantAgent(
             name="Project_Manager",
             system_message=f'''
-            You are the Project Manager. Be concise and avoid pleasantries. Refrain from any conversations that don't serve the goal of the user, ie. thank you.
-            Your primary responsibility is to oversee the entire project lifecycle, ensuring that all agents are effectively fulfilling their objectives and tasks on time.
-            Based on the directives from the user task, coordinate with all involved agents, set clear milestones, and monitor progress. Ensure that user feedback is promptly incorporated, and any adjustments are made in real-time to align with the project's goals.
-            Act as the central point of communication, facilitating collaboration between teams and ensuring that all deliverables are of the highest quality. Your expertise is crucial in ensuring that the project stays on track, meets deadlines, and achieves its objectives.
+            You are the Project Manager. 
+            Be concise and avoid pleasantries. Your primary responsibility is to oversee the entire project lifecycle, ensuring that all agents are effectively fulfilling their objectives and tasks on time.
+            Based on the directives from the user task, coordinate with all involved agents, set clear milestones, and monitor progress. 
+            Ensure that user feedback is promptly incorporated, and any adjustments are made in real-time to align with the project's goals.
+            Act as the central point of communication, facilitating collaboration between teams and ensuring that all deliverables are of the highest quality. 
+            Your expertise is crucial in ensuring that the project stays on track, meets deadlines, and achieves its objectives.
             Regularly review the project's status, address any challenges, and ensure that all stakeholders are kept informed of the project's progress.
             ''',
             llm_config = llm_config,
         )
 
-        creative_director = ChainlitAssistantAgent(
-            name="Creative_Director",
-            system_message=f'''
-            You are the Creative Director. Be concise and avoid pleasantries. Refrain from any conversations that don't serve the goal of the user, ie. thank you.
-            Your primary role is to guide the creative vision of the project, ensuring that all ideas are not only unique and compelling but also meet the highest standards of excellence and desirability.
-            Drawing from the insights of user task, oversee the creative process, inspire innovation, and set the bar for what's possible.
-            Review all creative outputs, provide constructive feedback, and ensure that every piece aligns with the brand's identity and resonates with the target audience. 
-            Collaborate closely with all teams, fostering a culture of excellence, and ensuring that our creative solutions are both groundbreaking and aligned with the project's objectives.
-            ''',
-            llm_config = llm_config,
-        )
+        # creative_director = ChainlitAssistantAgent(
+        #     name="Creative_Director",
+        #     system_message=f'''
+        #     You are the Creative Director. Be concise and avoid pleasantries. Your primary role is to guide the creative vision of the project, ensuring that all ideas are not only unique and compelling but also meet the highest standards of excellence and desirability.
+        #     Drawing from the insights of user task, oversee the creative process, inspire innovation, and set the bar for what's possible.
+        #     Review all creative outputs, provide constructive feedback, and ensure that every piece aligns with the brand's identity and resonates with the target audience. 
+        #     Collaborate closely with all teams, fostering a culture of excellence, and ensuring that our creative solutions are both groundbreaking and aligned with the project's objectives.
+        #     ''',
+        #     llm_config = llm_config,
+        # )
 
         # content_strategist = ChainlitAssistantAgent(
         #     name="Content_Strategist",
@@ -262,29 +263,29 @@ async def on_chat_start():
             }
         )
 
-        content_writer = ChainlitAssistantAgent(
-            name="Content_Copywriter",
-            system_message=f'''
-            You are the Lead Copywriter.
-            Your primary role is to craft compelling narratives and messages that align with the organisation's vision to break the stigma of mental health in Asia, so that people can get the help they need.
-            Based on the research gathered from the Content Researcher, create engaging content, from catchy headlines to in-depth articles.
-            Be concise and not verbose. Refrain from any conversations that don't serve the goal of the user.
-            ''',
-            llm_config = {
-                "functions": [write_function],
-                "config_list": config_list,
-                "temperature": 0,
-                "retry_wait_time": 30,
-                "request_timeout": GLOBAL_TIMEOUT,
-            },
-            function_map={
-                "write_content": write_content
-            }
-        )
+        # content_writer = ChainlitAssistantAgent(
+        #     name="Content_Copywriter",
+        #     system_message=f'''
+        #     You are the Lead Copywriter.
+        #     Your primary role is to craft compelling narratives and messages that align with the organisation's vision to break the stigma of mental health in Asia, so that people can get the help they need.
+        #     Based on the research gathered from the Content Researcher, create engaging content, from catchy headlines to in-depth articles.
+        #     Be concise and not verbose. Refrain from any conversations that don't serve the goal of the user.
+        #     ''',
+        #     llm_config = {
+        #         "functions": [write_function],
+        #         "config_list": config_list,
+        #         "temperature": 0,
+        #         "retry_wait_time": 30,
+        #         "request_timeout": GLOBAL_TIMEOUT,
+        #     },
+        #     function_map={
+        #         "write_content": write_content
+        #     }
+        # )
 
-        writing_assistant = ChainlitAssistantAgent(
-            name="Writing_Assistant",
-            system_message=f'''You are a writing assistant, you can use research function to collect latest information about a given topic, 
+        copywriter = ChainlitAssistantAgent(
+            name="Copywriter",
+            system_message=f'''You are a Copywriter, you can use research function to collect latest information about a given topic, 
             and then use write_content function to write a very well written content;
             Reply TERMINATE when your task is done
             Be concise and not verbose. Refrain from any conversations that don't serve the goal of the user.
@@ -302,9 +303,10 @@ async def on_chat_start():
             }
         )
 
-        artist = ChainlitAssistantAgent(
-            name="Artist",
-            system_message="As an expert in text-to-image AI models, you will utilize the 'generate_image' function to create an image based on the given prompt and iterate on the prompt, incorporating feedback until it achieves a perfect rating of 10/10.",
+        graphic_designer = ChainlitAssistantAgent(
+            name="Graphic_Designer",
+            system_message=f'''As an expert in text-to-image AI models, you will utilize the 'generate_image' function to create an image based on the given prompt and iterate on the prompt. 
+            Incorporating feedback from the Art Director until it achieves a perfect rating of 10/10.''',
             llm_config=llm_config_assistants,
             function_map={
                 "image_review": review_image,
@@ -314,7 +316,9 @@ async def on_chat_start():
 
         art_director = ChainlitAssistantAgent(
             name="Art_Director",
-            system_message="In the role of an AI image critic, your task is to employ the 'image_review' function to evaluate the image generated by the 'Artist' using the original prompt. You will then offer feedback on how to enhance the prompt for better image generation.",
+            system_message=f'''You are the Art Director. 
+            As an AI image critic, your task is to employ the 'image_review' function to evaluate the image generated by the Graphic Designer using the original prompt. 
+            You will then offer feedback on how to enhance the prompt for better image generation.''',
             llm_config=llm_config_assistants,
             function_map={
                 "image_review": review_image,
@@ -335,11 +339,10 @@ async def on_chat_start():
 
         cl.user_session.set(USER_PROXY_NAME, user_proxy)
         cl.user_session.set(PROJECT_MANAGER, project_manager)
-        cl.user_session.set(CREATIVE_DIRECTOR, creative_director)
+        # cl.user_session.set(CREATIVE_DIRECTOR, creative_director)
         cl.user_session.set(CONTENT_RESEARCHER, content_researcher)
-        cl.user_session.set(CONTENT_WRITER, content_writer)
-        cl.user_session.set(WRITING_ASSISTANT, writing_assistant)
-        cl.user_session.set(ARTIST, artist)
+        cl.user_session.set(COPYWRITER, copywriter)
+        cl.user_session.set(GRAPHIC_DESIGNER, graphic_designer)
         cl.user_session.set(ART_DIRECTOR, art_director)
         
         await cl.Message(content=WELCOME_MESSAGE, author="Chat").send()
@@ -360,14 +363,13 @@ async def run_conversation(message: cl.Message):
 
         user_proxy = cl.user_session.get(USER_PROXY_NAME)
         project_manager = cl.user_session.get(PROJECT_MANAGER)
-        creative_director = cl.user_session.get(CREATIVE_DIRECTOR)
+        # creative_director = cl.user_session.get(CREATIVE_DIRECTOR)
         content_researcher = cl.user_session.get(CONTENT_RESEARCHER)
-        content_writer = cl.user_session.get(CONTENT_WRITER)
-        writing_assistant = cl.user_session.get(WRITING_ASSISTANT)
-        artist = cl.user_session.get(ARTIST)
+        copywriter = cl.user_session.get(COPYWRITER)
+        graphic_designer = cl.user_session.get(GRAPHIC_DESIGNER)
         art_director = cl.user_session.get(ART_DIRECTOR)
         
-        groupchat = autogen.GroupChat(agents=[user_proxy, project_manager, creative_director, content_researcher, content_writer, writing_assistant, artist, art_director], messages=[], max_round=30)
+        groupchat = autogen.GroupChat(agents=[user_proxy, project_manager, content_researcher, copywriter, graphic_designer, art_director], messages=[], max_round=30)
         manager = autogen.GroupChatManager(groupchat=groupchat, llm_config=gpt4_config)
         
         print("Group chat messages: ", len(groupchat.messages))

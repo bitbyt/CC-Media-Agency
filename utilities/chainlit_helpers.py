@@ -23,6 +23,22 @@ def save_logs(logs_filename=logs_filename):
                 indent=4)
     return logs
 
+async def message_helper(data):
+    content = ""
+    if type(data["message"]) is str:
+        message = data["message"]
+        content = f'*Sending message to "{data["recipient"]}":*\n\n{message}'
+    else:
+        if data["message"]["role"] == 'function':
+            message = data["message"]["content"]
+            content = f'*Sending message to "{data["recipient"]}":*\n\n ** Response from calling function "{data["message"]["name"]}" ** \n\n{message}'
+        print('message: ', data["message"]["content"])
+    if content:
+        await cl.Message(
+            content=content,
+            author=data["author"],
+        ).send()
+
 class ChainlitAssistantAgent(AssistantAgent):
     def send(
         self,
@@ -31,11 +47,9 @@ class ChainlitAssistantAgent(AssistantAgent):
         request_reply: Optional[bool] = None,
         silent: Optional[bool] = False,
     ) -> bool:
+        message_content = {"author": self.name, "recipient": recipient.name, "message": message}
         cl.run_sync(
-            cl.Message(
-                content=f'*Sending message to "{recipient.name}":*\n\n{message}',
-                author=self.name,
-            ).send()
+            message_helper(message_content)
         )
         super(ChainlitAssistantAgent, self).send(
             message=message,
