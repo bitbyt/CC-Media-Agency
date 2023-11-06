@@ -47,7 +47,7 @@ class ChainlitAssistantAgent(AssistantAgent):
 class ChainlitUserProxyAgent(UserProxyAgent):
     def get_human_input(self, prompt: str) -> str:
         if prompt.startswith(
-            "Provide feedback to assistant. Press enter to skip and use auto-reply"
+            "Please give feedback to"
         ):
             res = cl.run_sync(
                 ask_helper(

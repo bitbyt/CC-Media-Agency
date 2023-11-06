@@ -13,7 +13,7 @@ from autogen import Agent, AssistantAgent, UserProxyAgent, config_list_from_json
 
 import chainlit as cl
 
-from utilities.tools import generate_image, review_image, search, scrape
+from utilities.tools import generate_image, review_image, research, write_content
 from utilities.chainlit_helpers import ChainlitAssistantAgent, ChainlitUserProxyAgent
 
 # Load environment variables
@@ -35,8 +35,6 @@ CONTENT_STRATEGIST = "Content Strategist"
 CONTENT_RESEARCHER = "Content Researcher"
 CONTENT_WRITER = "Content Writer"
 WRITING_ASSISTANT = "Writing Assistant"
-RESEARCH_ADMIN = "Research Admin"
-EDITORIAL_ADMIN = "Editorial Admin"
 ARTIST = "Artist"
 ART_DIRECTOR = "Art Director"
 
@@ -80,147 +78,6 @@ def oauth_callback(
 @cl.on_chat_start
 async def on_chat_start():
     try:
-        # Define write content function
-        def write_content(research_material, topic):
-            editor = AssistantAgent(
-                name="Editor",
-                system_message=f'''
-                Welcome, Senior Editor.
-                As a seasoned professional, you bring meticulous attention to detail, a deep appreciation for literary and cultural nuance, and a commitment to upholding the highest editorial standards. 
-                Your role is to craft the structure of a short blog post using the material from the Research Assistant. Use your experience to ensure clarity, coherence, and precision. 
-                Once structured, pass it to the Writer to pen the final piece.
-                ''',
-                llm_config=llm_config,
-            )
-
-            writer = AssistantAgent(
-                name="Writer",
-                system_message=f'''
-                Welcome, Blogger.
-                Your task is to compose a short blog post using the structure given by the Editor and incorporating feedback from the Reviewer. 
-                Embrace stylistic minimalism: be clear, concise, and direct. 
-                Approach the topic from a journalistic perspective; aim to inform and engage the readers without adopting a sales-oriented tone. 
-                After two rounds of revisions, conclude your post with "TERMINATE".
-                ''',
-                llm_config=llm_config,
-            )
-
-            reviewer = AssistantAgent(
-                name="Reviewer",
-                system_message=f'''
-                As a distinguished blog content critic, you are known for your discerning eye, deep literary and cultural understanding, and an unwavering commitment to editorial excellence. 
-                Your role is to meticulously review and critique the written blog, ensuring it meets the highest standards of clarity, coherence, and precision. 
-                Provide invaluable feedback to the Writer to elevate the piece. After two rounds of content iteration, conclude with "TERMINATE".
-                ''',        
-                llm_config=llm_config,
-            )
-
-            editorial_admin = ChainlitUserProxyAgent(
-                name="Editorial_Admin",
-                system_message="A human admin. Interact with editor to discuss the structure. Actual writing needs to be approved by this admin.",
-                code_execution_config=False,
-                is_termination_msg=lambda x: x.get("content", "") and x.get(
-                    "content", "").rstrip().endswith("TERMINATE"),
-                human_input_mode="TERMINATE",
-            )
-
-            cl.user_session.set(EDITORIAL_ADMIN, editorial_admin)
-
-            editorial_team = autogen.GroupChat(
-                agents=[editorial_admin, editor, writer, reviewer],
-                messages=[],
-                max_round=3)
-            
-            manager = autogen.GroupChatManager(groupchat=editorial_team, llm_config=llm_config)
-
-            editorial_admin.initiate_chat(
-                manager, message=f"Write a blog about {topic}, here are the material: {research_material}")
-
-            editorial_admin.stop_reply_at_receive(manager)
-            editorial_admin.send(
-                "Give me the blog that just generated again, return ONLY the blog, and add TERMINATE in the end of the message", manager)
-
-            # return the last message the expert received
-            return editorial_admin.last_message()["content"]
-        
-        # Define research function
-        def research(query):
-            llm_config_researcher = {
-                "functions": [
-                    {
-                        "name": "search",
-                        "description": "Google search for relevant information",
-                        "parameters": {
-                            "type": "object",
-                            "properties": {
-                                "query": {
-                                    "type": "string",
-                                    "description": "Google search query",
-                                }
-                            },
-                            "required": ["query"],
-                        },
-                    },
-                    {
-                        "name": "scrape",
-                        "description": "Scraping website content based on url",
-                        "parameters": {
-                            "type": "object",
-                            "properties": {
-                                "url": {
-                                    "type": "string",
-                                    "description": "Website url to scrape",
-                                }
-                            },
-                            "required": ["url"],
-                        },
-                    },
-                ],
-                "config_list": config_list,
-                "temperature": 0,
-                "retry_wait_time": 30,
-                "request_timeout": GLOBAL_TIMEOUT,
-            }
-
-            research_assistant = AssistantAgent(
-                name="Research_Assistant",
-                system_message=f'''
-                Welcome, Research Assistant.
-                Your task is to research the provided query extensively. 
-                Produce a detailed report, ensuring you include technical specifics and reference all sources. Conclude your report with "TERMINATE".
-                ''',
-                llm_config=llm_config_researcher,
-            )
-
-            research_admin = UserProxyAgent(
-                name="Research_Admin",
-                code_execution_config={"last_n_messages": 2, "work_dir": "coding"},
-                is_termination_msg=lambda x: x.get("content", "") and x.get(
-                    "content", "").rstrip().endswith("TERMINATE"),
-                human_input_mode="NEVER",
-                function_map={
-                    "search": search,
-                    "scrape": scrape,
-                }
-            )
-
-
-            research_admin.initiate_chat(research_assistant, message=query)
-
-            # Format for markdown (optional step)
-            # formatted_report = format_for_markdown(research_admin.last_message()["content"])
-
-            # Save the research report
-            # save_to_file(formatted_report, "research_report")
-
-            # set the receiver to be researcher, and get a summary of the research report
-            research_admin.stop_reply_at_receive(research_assistant)
-            research_admin.send(
-                "Give me the research report that just generated again, return ONLY the report & reference links.", research_assistant)
-
-            # return the last message the expert received
-            return research_admin.last_message()["content"]
-
         research_function = {
             "name": "research",
             "description": "Research about a given topic, return the research material including reference links",
@@ -357,7 +214,7 @@ async def on_chat_start():
             system_message=f'''
             You are the Creative Director. Be concise and avoid pleasantries. Refrain from any conversations that don't serve the goal of the user, ie. thank you.
             Your primary role is to guide the creative vision of the project, ensuring that all ideas are not only unique and compelling but also meet the highest standards of excellence and desirability.
-            Drawing from the insights of user task, oversee the creative process, inspire innovation, and set the bar for what's possible. Challenge the team to think outside the box and push the boundaries of creativity.
+            Drawing from the insights of user task, oversee the creative process, inspire innovation, and set the bar for what's possible.
             Review all creative outputs, provide constructive feedback, and ensure that every piece aligns with the brand's identity and resonates with the target audience. 
             Collaborate closely with all teams, fostering a culture of excellence, and ensuring that our creative solutions are both groundbreaking and aligned with the project's objectives.
             ''',
@@ -387,10 +244,9 @@ async def on_chat_start():
             name="Content_Researcher",
             system_message=f'''
             You are the Lead Researcher. 
-            You must use the research function to provide a topic for the writing_assistant in order to get up to date information outside of your knowledge cutoff
+            You must use the research function to provide a topic for the Copywriter in order to get up to date information outside of your knowledge cutoff.
             Your primary responsibility is to delve deep into understanding the challenges around mental health.
             Using the information from the user task, conduct thorough research to uncover insights related to the task.
-            Your findings should shed light on mental health strategies, meditation techniques, mindfulness practices, and other therapeutic methods.
             Share your research findings with the Project Manager to provide insight into the task.
             Be concise and not verbose. Refrain from any conversations that don't serve the goal of the user.
             ''',
@@ -511,7 +367,7 @@ async def run_conversation(message: cl.Message):
         artist = cl.user_session.get(ARTIST)
         art_director = cl.user_session.get(ART_DIRECTOR)
         
-        groupchat = autogen.GroupChat(agents=[user_proxy, project_manager, creative_director, content_researcher, content_writer, writing_assistant, artist, art_director], messages=[], max_round=20)
+        groupchat = autogen.GroupChat(agents=[user_proxy, project_manager, creative_director, content_researcher, content_writer, writing_assistant, artist, art_director], messages=[], max_round=30)
         manager = autogen.GroupChatManager(groupchat=groupchat, llm_config=gpt4_config)
         
         print("Group chat messages: ", len(groupchat.messages))
